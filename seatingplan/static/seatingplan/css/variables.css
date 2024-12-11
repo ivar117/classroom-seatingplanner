@@ -1,0 +1,23 @@
+@import url('https://code.cdn.mozilla.net/fonts/fira.css');
+
+:root {
+    --main-background-color: #ffffff;
+    --main-foreground-color: #000000;
+    --blue-accent-color: #54c0ff;
+    --orange-accent-color: #ffb054;
+    --off-white-color: #eaeaea;
+
+    --main-font: "Fira Sans";
+    --fallback-font: sans-serif;
+
+    --seat-width: 80.324px;
+    --seat-height: 86.459px;
+    --default-border-width: 2.089px;
+    --default-border-radius: 25.580px;
+
+    --sidebar-button-border-radius: 20px;
+    --sidebar-toolbar-border-radius: 15px;
+    --sidebar-width: 300px;
+    --sidebar-togglebutton-width: 40px;
+    --sidebar-border-width: 3.670px;
+}
