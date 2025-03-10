@@ -1,28 +1,45 @@
 from django.shortcuts import get_object_or_404
-from ninja import Router, Schema
+from ninja_extra import Router
+from ninja import ModelSchema
 
-from .models import Seating
+from .models import Person, Seat, SeatRow, SeatingPlan
 
 router = Router()
 
-class SeatingPlanSchema(Schema):
-    id: int
-    user_id: int
-    people: list
+class PersonSchema(ModelSchema):
+    class Meta:
+        model = Person
+        fields = '__all__'
 
-@router.get("/")
+class SeatSchema(ModelSchema):
+    class Meta:
+        model = Seat
+        fields = '__all__'
+
+class SeatRowSchema(ModelSchema):
+    seats: list[SeatSchema]
+
+    class Meta:
+        model = SeatRow
+        fields = '__all__'
+
+class SeatingPlanSchema(ModelSchema):
+    class Meta:
+        model = SeatingPlan
+        fields = ['id']
+
+    user_id:   int
+    seat_rows: list[SeatRowSchema]
+    people:    list[PersonSchema]
+
+
+@router.get("seatingplans", response=list[SeatingPlanSchema])
 def get_all_seating_plans(request):
-    seating_plan_objects = Seating.objects.all()
-    seating_plans = []
+    all_seating_plans = SeatingPlan.objects.prefetch_related()
+    return all_seating_plans
 
-    for seating_plan_obj in seating_plan_objects:
-        seating_plan_dict = SeatingPlanSchema(**seating_plan_obj.__dict__)
-        seating_plans.append(seating_plan_dict)
-
-    return seating_plans
-
-@router.get("/{seating_id}")
+@router.get("seatingplans/{seating_id}", response=SeatingPlanSchema)
 def get_seating_plan(request, seating_id:int):
-    seating_plan = get_object_or_404(Seating, id=seating_id)
-    seating_plan_dict = SeatingPlanSchema(**seating_plan.__dict__)
-    return seating_plan_dict
+    queryset = SeatingPlan.objects.prefetch_related()
+    seating_plan = get_object_or_404(queryset, id=seating_id)
+    return seating_plan
