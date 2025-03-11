@@ -3,17 +3,10 @@
 import {
     JSX,
     useState,
-    useEffect,
-    Fragment
 } from "react";
-import {
-    useSearchParams,
-    ReadonlyURLSearchParams,
-} from 'next/navigation';
-import Image from "next/image";
 import styles from "./style.module.css";
-import { SearchParams } from "next/dist/server/request/search-params";
 import "./variables.css"
+import GenerateSeatingArrangement from "./seat-arrangement"
 
 export function GenerateSeatOutlinesGrid(columns: number, rows: number): JSX.Element[] {
     const gridArray = Array.from({ length: rows }, (_, idx) => (
@@ -26,65 +19,6 @@ export function GenerateSeatOutlinesGrid(columns: number, rows: number): JSX.Ele
     return gridArray
 }
 
-export async function FetchSeatingplanData(url: string): Promise<JSON> {
-    const res = await fetch(url) as Response;
-    const data = await res.json() as JSON;
-    return data;
-};
-
-export function GenerateSeatingsFromData(): JSX.Element {
-    const searchParams = useSearchParams() as ReadonlyURLSearchParams;
-    const seatplanId = searchParams.get('id') as string;
-    const DJANGO_API_SEATINGPLAN_URL = `http://localhost:8001/api/seatingplans/${seatplanId}` as string;
-
-    const [people, setPeople] = useState<Array<Array<string>>>([]);
-
-    useEffect(() => {
-        FetchSeatingplanData(DJANGO_API_SEATINGPLAN_URL)
-            .then((data: JSON) => {
-                setPeople(data.people);
-            })
-            .catch(error => {
-                console.error('Error fetching seating plan data:', error);
-                return;
-            })
-    }, [seatplanId]);
-
-    return (
-        <div className={styles["seating-row"]}>
-        {people.length > 0 && people.map((group, i) => (
-            <Fragment key={i}>
-                <div className={styles["seat-group"]}>
-                    {group.map((person, j) => (
-                    <div className={styles["seat-container"]} key={j}>
-                        <div
-                            title="Empty Seat"
-                            className={`
-                                ${styles.seat}
-                                ${j === 0 ? styles.first : ''}
-                                ${j === group.length - 1 ? styles.last : ''}
-                            `}
-                        ></div>
-                        <div
-                            className={`
-                                ${styles["person-block"]}
-                                ${j === 0 ? styles.first : ''}
-                                ${j === group.length - 1 ? styles.last : ''}
-                            `}
-                        >
-                            <div className={styles.name}>
-                                {person}
-                            </div>
-                        </div>
-                        {j !== group.length - 1 && <div className={styles["seat-separator"]}></div>}
-                    </div>
-                    ))}
-                </div>
-                <div title="Add New Seat" className={styles["seat-outline"]}></div>
-            </Fragment>
-        ))}
-        </div>
-    );
 }
 
 export default function Page(): JSX.Element {
@@ -176,10 +110,7 @@ export default function Page(): JSX.Element {
             <div className={styles["seatplan-container"]}>
                 <div className={styles["seating-grid-container"]}>
                     <div className={styles["seating-grid"]}>
-                        {/* Create a grid of seat outlines with specified amount of columns and rows */}
-                        {GenerateSeatOutlinesGrid(15, 10)}
-                        {/* Create seating plans from data */}
-                        {GenerateSeatingsFromData()}
+                        {GenerateSeatingArrangement()}
                     </div>
                 </div>
             </div>
