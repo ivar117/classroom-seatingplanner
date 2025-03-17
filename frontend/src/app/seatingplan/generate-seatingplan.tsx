@@ -90,26 +90,26 @@ const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
     );
 };
 
-export default function GenerateSeatingArrangement(): JSX.Element | null {
+export default function GenerateSeatingPlan(): JSX.Element | null {
     const searchParams = useSearchParams() as ReadonlyURLSearchParams;
-    const seatplanId = searchParams.get('id') as string;
-    const DJANGO_API_SEATINGPLAN_URL = `http://localhost:8001/api/seatingplans/${seatplanId}` as string;
+    const seatPlanId = searchParams.get('id') as string;
+    const DJANGO_API_SEATINGPLAN_URL = `http://localhost:8001/api/seatingplans/${seatPlanId}` as string;
 
-    const [seatingArrangement, setSeatingArrangement] = useState<SeatRow[]>([]);
+    const [seatingPlan, setSeatingPlan] = useState<SeatRow[]>([]);
 
     useEffect(() => {
         FetchData(DJANGO_API_SEATINGPLAN_URL)
             .then((data: JSON) => {
-                setSeatingArrangement(data.seat_rows);
+                setSeatingPlan(data.seat_rows);
             })
             .catch(error => {
                 console.error('Error fetching seating plan data:', error);
             })
-    }, [seatplanId]);
+    }, [seatPlanId]);
 
     return (
         <>
-            {seatingArrangement.map((row: SeatRow, i: number) => (
+            {seatingPlan.map((row: SeatRow, i: number) => (
                 <SeatingRow key={i} row={row} />
             ))}
         </>

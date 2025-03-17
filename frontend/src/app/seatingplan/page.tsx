@@ -6,7 +6,7 @@ import {
 } from "react";
 import styles from "./style.module.css";
 import "./variables.css"
-import GenerateSeatingArrangement from "./seat-arrangement"
+import GenerateSeatingPlan from "./generate-seatingplan"
 
 export function GenerateSeatOutlinesGrid(columns: number, rows: number): JSX.Element[] {
     const gridArray = Array.from({ length: rows }, (_, idx) => (
@@ -110,7 +110,7 @@ export default function Page(): JSX.Element {
             <div className={styles["seatplan-container"]}>
                 <div className={styles["seating-grid-container"]}>
                     <div className={styles["seating-grid"]}>
-                        {GenerateSeatingArrangement()}
+                        {GenerateSeatingPlan()}
                     </div>
                 </div>
             </div>
