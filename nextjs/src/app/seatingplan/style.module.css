@@ -199,12 +199,12 @@
     & .seatplan-container {
         display: flex;
         align-items: center;
+        justify-content: center;
         width: 100%;
         overflow-x: auto;
         position: relative;
 
         & .seating-grid-container {
-            margin: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
