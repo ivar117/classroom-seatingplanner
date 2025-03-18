@@ -13,12 +13,14 @@ import {
 import styles from './style.module.css';
 
 interface Seat {
-    type: string;
-    name?: string;
+    type:         string;
+    name?:        string;
+    column_index: number;
 }
 
 interface SeatRow {
-    seats: Seat[];
+    seats:     Seat[];
+    row_index: number;
 }
 
 export async function FetchData(url: string): Promise<JSON> {
@@ -30,7 +32,12 @@ export async function FetchData(url: string): Promise<JSON> {
 const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
     let groupElements = [] as JSX.Element[];
     let prevSeatType = null as string | null;
-    let seats = row.seats as Seat[];
+    let seats = [] as Seat[];
+
+    // Sort seats according to seat column indexes
+    seats = row.seats.sort(function(a, b) {
+        return a.column_index - b.column_index;
+    })
 
     return (
         <div className={styles["seating-row"]}>
@@ -106,6 +113,11 @@ export default function GenerateSeatingPlan(): JSX.Element | null {
                 console.error('Error fetching seating plan data:', error);
             })
     }, [seatPlanId]);
+
+    // Sort seating plan rows according to row indexes
+    seatingPlan.sort(function(a, b) {
+        return a.row_index - b.row_index;
+    })
 
     return (
         <>

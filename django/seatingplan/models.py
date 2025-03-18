@@ -35,6 +35,7 @@ class Person(models.Model):
         return f'Person \"{self.name}\" in {self.seating_plan}'
 
 class SeatRow(models.Model):
+    row_index    = models.IntegerField()
     seating_plan = models.ForeignKey(
         SeatingPlan,
         on_delete=models.CASCADE,
@@ -42,13 +43,7 @@ class SeatRow(models.Model):
     )
 
     def __str__(self):
-        # Get the row number for this SeatRow object in related SeatingPlan object
-        seatrows = self.seating_plan.seat_rows.all()
-        for seatrow_index in range(len(seatrows)):
-            if seatrows[seatrow_index] == self:
-                break
-
-        return f'Row {seatrow_index + 1} in {self.seating_plan}'
+        return f'Row {self.row_index} in {self.seating_plan}'
 
 class Seat(models.Model):
     SEAT_TYPES = {
@@ -57,19 +52,15 @@ class Seat(models.Model):
         'used':    'Used',
     }
 
-    type     = models.CharField(choices=SEAT_TYPES)
-    name     = models.CharField(blank=True, null=True)
-    seat_row = models.ForeignKey(
-                SeatRow,
-                on_delete=models.CASCADE,
-                related_name='seats'
-            )
+    column_index = models.IntegerField()
+    type         = models.CharField(choices=SEAT_TYPES)
+    name         = models.CharField(blank=True, null=True)
+    seat_row     = models.ForeignKey(
+                    SeatRow,
+                    on_delete=models.CASCADE,
+                    related_name='seats'
+                )
 
     def __str__(self):
-        # Get the column number for this Seat object in related SeatRow object
-        seats = self.seat_row.seats.all()
-        for seat_column_index in range(len(seats)):
-            if seats[seat_column_index] == self:
-                break
+        return f'{self.SEAT_TYPES[self.type]} seat in column {self.column_index} in {self.seat_row} with name {self.name}'
 
-        return f'{self.SEAT_TYPES[self.type]} seat in column {seat_column_index + 1} in {self.seat_row}'
