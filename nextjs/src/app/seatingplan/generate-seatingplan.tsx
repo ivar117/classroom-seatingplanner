@@ -13,14 +13,14 @@ import {
 import styles from './style.module.css';
 
 interface Seat {
-    type:         string;
-    name?:        string;
     column_index: number;
+    type:         number;
+    name?:        string;
 }
 
 interface SeatRow {
-    seats:     Seat[];
     row_index: number;
+    seats:     Seat[];
 }
 
 export async function FetchData(url: string): Promise<JSON> {
@@ -31,8 +31,14 @@ export async function FetchData(url: string): Promise<JSON> {
 
 const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
     let groupElements = [] as JSX.Element[];
-    let prevSeatType = null as string | null;
+    let prevSeatType = null as number | null;
     let seats = [] as Seat[];
+
+    const SEAT_TYPES = {
+        OUTLINE: 0,
+        EMPTY: 1,
+        USED: 2,
+    }
 
     // Sort seats according to seat column indexes
     seats = row.seats.sort(function(a, b) {
@@ -42,20 +48,20 @@ const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
     return (
         <div className={styles["seating-row"]}>
             {seats.map((seat: Seat, j: number) => {
-                let nextSeatType: string | null;
+                let nextSeatType: number | null;
                 // Set proceeding seat type if it's not the last seat of the current row
                 if (j != seats.length -1) {
-                    nextSeatType = seats[j+1].type as string;
+                    nextSeatType = seats[j+1].type as number;
                 }
                 else {
                     nextSeatType = null;
                 }
 
-                if (seat.type === 'outline') {
-                    prevSeatType = seat.type as string;
+                if (seat.type === SEAT_TYPES.OUTLINE) {
+                    prevSeatType = seat.type as number;
                     return <div key={j} title="Add New Seat" className={styles["seat-outline"]}></div>;
                 }
-                else if (seat.type === 'empty' || seat.type === 'used') {
+                else if (seat.type === SEAT_TYPES.EMPTY || seat.type === SEAT_TYPES.USED) {
                     // Add seat to list until next seat type is different or if it is the end of seating row
                     groupElements.push(
                         <div key={j} className={styles["seat-container"]}>
@@ -64,7 +70,7 @@ const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
                                 ${prevSeatType != seat.type && styles.first || prevSeatType === null && styles.first}
                                 ${nextSeatType != seat.type && styles.last || nextSeatType === null && styles.first}
                             `}></div>
-                            {seat.type == 'used' &&
+                            {seat.type == SEAT_TYPES.USED &&
                                 <div className={`
                                     ${styles["person-block"]}
                                     ${prevSeatType != seat.type && styles.first || prevSeatType === null && styles.first}
@@ -77,7 +83,7 @@ const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
                         </div>
                     );
 
-                    prevSeatType = seat.type as string;
+                    prevSeatType = seat.type as number;
                     if (nextSeatType != seat.type || nextSeatType === null) {
                         const groupElementsCopy = groupElements as JSX.Element[];
                         groupElements = [];

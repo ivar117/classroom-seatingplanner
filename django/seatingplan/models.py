@@ -23,8 +23,6 @@ class Person(models.Model):
     seating_plan = models.ForeignKey(
                     SeatingPlan,
                     on_delete=models.CASCADE,
-                    blank=True,
-                    null=True,
                     related_name='people'
                 )
 
@@ -47,13 +45,13 @@ class SeatRow(models.Model):
 
 class Seat(models.Model):
     SEAT_TYPES = {
-        'outline': 'Outline',
-        'empty':   'Empty',
-        'used':    'Used',
+        0: 'Outline',
+        1: 'Empty',
+        2: 'Used',
     }
 
     column_index = models.IntegerField()
-    type         = models.CharField(choices=SEAT_TYPES)
+    type         = models.IntegerField(choices=SEAT_TYPES)
     name         = models.CharField(blank=True, null=True)
     seat_row     = models.ForeignKey(
                     SeatRow,
