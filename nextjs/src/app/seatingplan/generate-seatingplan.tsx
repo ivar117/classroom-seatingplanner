@@ -14,7 +14,7 @@ import styles from './style.module.css';
 
 interface Seat {
     column_index: number;
-    type:         number;
+    is_occupied:  boolean;
     name?:        string;
 }
 
@@ -31,14 +31,9 @@ export async function FetchData(url: string): Promise<JSON> {
 
 const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
     let groupElements = [] as JSX.Element[];
-    let prevSeatType = null as number | null;
     let seats = [] as Seat[];
-
-    const SEAT_TYPES = {
-        OUTLINE: 0,
-        EMPTY: 1,
-        USED: 2,
-    }
+    let prevSeatOccupiedState = null as boolean | null;
+    let nextSeatOccupiedState: boolean | null;
 
     // Sort seats according to seat column indexes
     seats = row.seats.sort(function(a, b) {
@@ -48,43 +43,46 @@ const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
     return (
         <div className={styles["seating-row"]}>
             {seats.map((seat: Seat, j: number) => {
-                let nextSeatType: number | null;
-                // Set proceeding seat type if it's not the last seat of the current row
+                /* Set proceeding seat occupied state if it
+                 * is not the last seat of the current row
+                 */
                 if (j != seats.length -1) {
-                    nextSeatType = seats[j+1].type as number;
+                    nextSeatOccupiedState = seats[j+1].is_occupied as boolean;
                 }
                 else {
-                    nextSeatType = null;
+                    nextSeatOccupiedState = null;
                 }
 
-                if (seat.type === SEAT_TYPES.OUTLINE) {
-                    prevSeatType = seat.type as number;
+                if (seat.is_occupied === false) {
+                    prevSeatOccupiedState = seat.is_occupied as boolean;
                     return <div key={j} title="Add New Seat" className={styles["seat-outline"]}></div>;
                 }
-                else if (seat.type === SEAT_TYPES.EMPTY || seat.type === SEAT_TYPES.USED) {
-                    // Add seat to list until next seat type is different or if it is the end of seating row
+                else if (seat.is_occupied === true) {
+                    /* Add seat to list until next seat occupied state is different
+                     * or if the end of the current seating row is reached
+                     */
                     groupElements.push(
                         <div key={j} className={styles["seat-container"]}>
                             <div title="Empty Seat" className={`
                                 ${styles.seat}
-                                ${prevSeatType != seat.type && styles.first || prevSeatType === null && styles.first}
-                                ${nextSeatType != seat.type && styles.last || nextSeatType === null && styles.first}
+                                ${prevSeatOccupiedState != seat.is_occupied && styles.first || prevSeatOccupiedState === null && styles.first}
+                                ${nextSeatOccupiedState != seat.is_occupied && styles.last || nextSeatOccupiedState === null && styles.first}
                             `}></div>
-                            {seat.type == SEAT_TYPES.USED &&
+                            {seat.name != null &&
                                 <div className={`
                                     ${styles["person-block"]}
-                                    ${prevSeatType != seat.type && styles.first || prevSeatType === null && styles.first}
-                                    ${nextSeatType != seat.type && styles.last || nextSeatType === null && styles.first}
+                                    ${prevSeatOccupiedState != seat.is_occupied && styles.first || prevSeatOccupiedState === null && styles.first}
+                                    ${nextSeatOccupiedState != seat.is_occupied && styles.last || nextSeatOccupiedState === null && styles.first}
                                 `}>
                                     <div className={styles.name}>{seat.name}</div>
                                 </div>
                             }
-                            {nextSeatType === seat.type && nextSeatType != null && <div className={styles["seat-separator"]}></div>}
+                            {nextSeatOccupiedState === seat.is_occupied && nextSeatOccupiedState != null && <div className={styles["seat-separator"]}></div>}
                         </div>
                     );
 
-                    prevSeatType = seat.type as number;
-                    if (nextSeatType != seat.type || nextSeatType === null) {
+                    prevSeatOccupiedState = seat.is_occupied as boolean;
+                    if (nextSeatOccupiedState != seat.is_occupied || nextSeatOccupiedState === null) {
                         const groupElementsCopy = groupElements as JSX.Element[];
                         groupElements = [];
 

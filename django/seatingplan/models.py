@@ -44,14 +44,8 @@ class SeatRow(models.Model):
         return f'Row {self.row_index} in {self.seating_plan}'
 
 class Seat(models.Model):
-    SEAT_TYPES = {
-        0: 'Outline',
-        1: 'Empty',
-        2: 'Used',
-    }
-
     column_index = models.IntegerField()
-    type         = models.IntegerField(choices=SEAT_TYPES)
+    is_occupied  = models.BooleanField()
     name         = models.CharField(blank=True, null=True)
     seat_row     = models.ForeignKey(
                     SeatRow,
@@ -60,5 +54,10 @@ class Seat(models.Model):
                 )
 
     def __str__(self):
-        return f'{self.SEAT_TYPES[self.type]} seat in column {self.column_index} in {self.seat_row} with name {self.name}'
-
+        if self.is_occupied:
+            if self.name != None:
+                return f'Used seat in column {self.column_index} in {self.seat_row} with name {self.name}'
+            else:
+                return f'Empty seat in column {self.column_index} in {self.seat_row} with name {self.name}'
+        else:
+            return f'Outline seat in column {self.column_index} in {self.seat_row} with name {self.name}'
