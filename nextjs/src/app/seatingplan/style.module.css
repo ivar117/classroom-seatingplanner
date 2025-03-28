@@ -133,6 +133,7 @@
                         opacity: 0;
                         user-select: none;
                         transition: 200ms;
+                        visibility: hidden;
 
                         &.visible {
                             height: auto;
@@ -140,6 +141,7 @@
                             opacity: 1;
                             margin-top: 10px;
                             user-select: all;
+                            visibility: visible;
                         }
 
                         &>.dropdown-item {
