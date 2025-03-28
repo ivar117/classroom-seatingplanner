@@ -55,7 +55,7 @@ const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
 
                 if (seat.is_occupied === false) {
                     prevSeatOccupiedState = seat.is_occupied as boolean;
-                    return <div key={j} title="Add New Seat" className={styles["seat-outline"]}></div>;
+                    return <div key={j} id="seat-outline" title="Add New Seat" className={styles["seat-outline"]}></div>;
                 }
                 else if (seat.is_occupied === true) {
                     /* Add seat to list until next seat occupied state is different

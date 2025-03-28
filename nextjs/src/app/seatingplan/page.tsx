@@ -3,6 +3,8 @@
 import {
     JSX,
     useState,
+    useRef,
+    RefObject
 } from "react";
 import styles from "./style.module.css";
 import "./variables.css"
@@ -19,6 +21,21 @@ export function GenerateSeatOutlinesGrid(columns: number, rows: number): JSX.Ele
     return gridArray
 }
 
+export function ToggleSeatOutlinesVisibility(seatingGridRef: RefObject<HTMLElement | null>): void {
+    const seatingGridRows = seatingGridRef.current.children as HTMLCollectionOf<HTMLElement>;
+
+    for (const seatRow of seatingGridRows) {
+        for (const seat of seatRow.children as HTMLCollectionOf<HTMLElement>) {
+            if (seat.id == "seat-outline") {
+                const seatComputedStyle = window.getComputedStyle(seat);
+
+                if (seatComputedStyle.getPropertyValue("visibility") == "visible")
+                    seat.style.visibility = "hidden";
+                else
+                    seat.style.visibility = "visible";
+            }
+        }
+    }
 }
 
 export default function Page(): JSX.Element {
@@ -38,6 +55,12 @@ export default function Page(): JSX.Element {
     };
 
     const exportButtonArrowTransform = isExportMenuToggled ? 'scale(1, -1)' :  'scale(1)' as string;
+
+    const seatingGridRef = useRef<HTMLDivElement | null>(null);
+
+    const toggleSeatOutlinesVisibility = (): void => {
+        ToggleSeatOutlinesVisibility(seatingGridRef);
+    }
 
     return (
         <main className={styles["layout-container"]}>
@@ -62,7 +85,11 @@ export default function Page(): JSX.Element {
                             </button>
                         </div>
 
-                        <button id={styles["seat-outlines-toggle-button"]} className={styles["sidebar-button"]}>
+                        <button
+                            onClick={toggleSeatOutlinesVisibility}
+                            id={styles["seat-outlines-toggle-button"]}
+                            className={styles["sidebar-button"]}
+                        >
                             <img src="/images/components/seat-outline.svg" alt="Outline Icon" /> Toggle Seat Outlines
                         </button>
                         <button id={styles["shuffle-seatings-button"]} className={styles["sidebar-button"]}>
@@ -109,7 +136,7 @@ export default function Page(): JSX.Element {
 
             <div className={styles["seatplan-container"]}>
                 <div className={styles["seating-grid-container"]}>
-                    <div className={styles["seating-grid"]}>
+                    <div ref={seatingGridRef} className={styles["seating-grid"]}>
                         {GenerateSeatingPlan()}
                     </div>
                 </div>
