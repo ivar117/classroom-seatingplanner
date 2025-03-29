@@ -92,7 +92,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         'NAME': 'classroom_seatingdb',
         'USER': 'postgres',
-        'PASSWORD': 'postare39',
+        'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '5432',
     }
