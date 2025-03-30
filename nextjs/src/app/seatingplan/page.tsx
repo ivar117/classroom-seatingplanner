@@ -9,25 +9,26 @@ import {
 import styles from "./style.module.css";
 import "./variables.css"
 import GenerateSeatingPlan from "./generate-seatingplan"
+import {ExportSeatingPlanAsCsv} from "./seatingplan-converter";
 
 export function GenerateSeatOutlinesGrid(columns: number, rows: number): JSX.Element[] {
     const gridArray = Array.from({ length: rows }, (_, idx) => (
         <div className={styles["seating-row"]} key={idx}>
             {Array.from({ length: columns }, (_, seatIdx) => (
-                <div key={seatIdx} title="Add New Seat" className={styles["seat-outline"]}></div>
+                <div key={seatIdx} title="Add New Seat" id="seat-outline" className={styles["seat-outline"]}></div>
             ))}
         </div>
     )) as JSX.Element[]
-    return gridArray
+    return gridArray;
 }
 
 export function ToggleSeatOutlinesVisibility(seatingGridRef: RefObject<HTMLElement | null>): void {
-    const seatingGridRows = seatingGridRef.current.children as HTMLCollectionOf<HTMLElement>;
+    const seatingGridRows = seatingGridRef.current?.children as HTMLCollectionOf<HTMLElement>;
 
-    for (const seatRow of seatingGridRows) {
+    for (const seatRow of seatingGridRows as HTMLCollectionOf<HTMLElement>) {
         for (const seat of seatRow.children as HTMLCollectionOf<HTMLElement>) {
             if (seat.id == "seat-outline") {
-                const seatComputedStyle = window.getComputedStyle(seat);
+                const seatComputedStyle = window.getComputedStyle(seat) as CSSStyleDeclaration;
 
                 if (seatComputedStyle.getPropertyValue("visibility") == "visible")
                     seat.style.visibility = "hidden";
@@ -60,6 +61,10 @@ export default function Page(): JSX.Element {
 
     const toggleSeatOutlinesVisibility = (): void => {
         ToggleSeatOutlinesVisibility(seatingGridRef);
+    }
+
+    const exportToCsv = (): void => {
+        ExportSeatingPlanAsCsv(seatingGridRef);
     }
 
     return (
@@ -109,15 +114,15 @@ export default function Page(): JSX.Element {
                             </button>
 
                             <div className={`${styles["export-dropdown"]} ${isExportMenuToggled ? styles.visible : ''}`}>
-                                <div className={`${styles["dropdown-item"]} ${styles.first}`}>
+                                <button className={`${styles["dropdown-item"]} ${styles.first}`}>
                                     <img src="/images/components/file-pdf.svg" alt=".pdf icon" /> .pdf file
-                                </div>
-                                <div className={styles["dropdown-item"]}>
+                                </button>
+                                <button className={styles["dropdown-item"]}>
                                     <img src="/images/components/file-png.svg" alt=".png icon" /> .png file
-                                </div>
-                                <div className={`${styles["dropdown-item"]} ${styles.last}`}>
+                                </button>
+                                <button onClick={exportToCsv} className={`${styles["dropdown-item"]} ${styles.last}`}>
                                     <img src="/images/components/file-csv.svg" alt=".csv icon" /> .csv file
-                                </div>
+                                </button>
                             </div>
                         </div>
                     </div> {/* .sidebar-actions ends here */}

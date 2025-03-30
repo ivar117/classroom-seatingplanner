@@ -9,29 +9,22 @@ import {
     useSearchParams,
     ReadonlyURLSearchParams,
 } from 'next/navigation';
+import {SeatingPlanInterface,
+        SeatRowInterface,
+        SeatInterface
+} from "./seatingplan-interfaces";
 
 import styles from './style.module.css';
 
-interface Seat {
-    column_index: number;
-    is_occupied:  boolean;
-    name?:        string;
-}
-
-interface SeatRow {
-    row_index: number;
-    seats:     Seat[];
-}
-
-export async function FetchData(url: string): Promise<JSON> {
+export async function FetchSeatingPlanData(url: string): Promise<SeatingPlanInterface> {
     const res = await fetch(url) as Response;
-    const data = await res.json() as JSON;
+    const data = await res.json() as SeatingPlanInterface;
     return data;
 };
 
-const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
+const SeatingRow = ({row}: {row: SeatRowInterface}): JSX.Element => {
     let groupElements = [] as JSX.Element[];
-    let seats = [] as Seat[];
+    let seats = [] as SeatInterface[];
     let prevSeatOccupiedState = null as boolean | null;
     let nextSeatOccupiedState: boolean | null;
 
@@ -42,7 +35,7 @@ const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
 
     return (
         <div className={styles["seating-row"]}>
-            {seats.map((seat: Seat, j: number) => {
+            {seats.map((seat: SeatInterface, j: number) => {
                 /* Set proceeding seat occupied state if it
                  * is not the last seat of the current row
                  */
@@ -63,18 +56,18 @@ const SeatingRow = ({row}: {row: SeatRow}): JSX.Element => {
                      */
                     groupElements.push(
                         <div key={j} className={styles["seat-container"]}>
-                            <div title="Empty Seat" className={`
+                            <div id="seat-empty" title="Empty Seat" className={`
                                 ${styles.seat}
                                 ${prevSeatOccupiedState != seat.is_occupied && styles.first || prevSeatOccupiedState === null && styles.first}
                                 ${nextSeatOccupiedState != seat.is_occupied && styles.last || nextSeatOccupiedState === null && styles.first}
                             `}></div>
                             {seat.name != null &&
-                                <div className={`
+                                <div id="seat-person" className={`
                                     ${styles["person-block"]}
                                     ${prevSeatOccupiedState != seat.is_occupied && styles.first || prevSeatOccupiedState === null && styles.first}
                                     ${nextSeatOccupiedState != seat.is_occupied && styles.last || nextSeatOccupiedState === null && styles.first}
                                 `}>
-                                    <div className={styles.name}>{seat.name}</div>
+                                    <div id="name" className={styles.name}>{seat.name}</div>
                                 </div>
                             }
                             {nextSeatOccupiedState === seat.is_occupied && nextSeatOccupiedState != null && <div className={styles["seat-separator"]}></div>}
@@ -106,26 +99,28 @@ export default function GenerateSeatingPlan(): JSX.Element | null {
     const seatPlanId = searchParams.get('id') as string;
     const DJANGO_API_SEATINGPLAN_URL = `http://localhost:8001/api/seatingplans/${seatPlanId}` as string;
 
-    const [seatingPlan, setSeatingPlan] = useState<SeatRow[]>([]);
+    const [seatingPlanObject, SetSeatingPlanObject] = useState<SeatingPlanInterface>({seat_rows: []})
 
     useEffect(() => {
-        FetchData(DJANGO_API_SEATINGPLAN_URL)
-            .then((data: JSON) => {
-                setSeatingPlan(data.seat_rows);
+        FetchSeatingPlanData(DJANGO_API_SEATINGPLAN_URL)
+            .then((data: SeatingPlanInterface) => {
+                SetSeatingPlanObject(data);
             })
             .catch(error => {
                 console.error('Error fetching seating plan data:', error);
             })
     }, [seatPlanId]);
 
-    // Sort seating plan rows according to row indexes
-    seatingPlan.sort(function(a, b) {
+    const seatingPlanRows = seatingPlanObject.seat_rows as SeatRowInterface[];
+
+    // seatingPlanObject.sort(function(a, b) {
+    seatingPlanRows.sort(function(a, b) {
         return a.row_index - b.row_index;
-    })
+    });
 
     return (
         <>
-            {seatingPlan.map((row: SeatRow, i: number) => (
+            {seatingPlanRows.map((row: SeatRowInterface, i: number) => (
                 <SeatingRow key={i} row={row} />
             ))}
         </>
