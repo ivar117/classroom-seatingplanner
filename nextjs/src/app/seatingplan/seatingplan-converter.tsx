@@ -12,11 +12,11 @@ import {SeatingPlanInterface,
 } from "./seatingplan-interfaces";
 
 export default function GenerateObjectFromSeatingPlan(seatingGridRef: RefObject<HTMLElement | null>): object {
-    let seatingPlanObject = {seat_rows: []} as SeatingPlanInterface;
+    const seatingPlanObject = {seat_rows: []} as SeatingPlanInterface;
     const seatingGridRows = seatingGridRef.current?.children as HTMLCollectionOf<HTMLElement>;
 
     for (const rowElement of seatingGridRows ) {
-        let seatRowObject = {seats: []} as SeatRowInterface;
+        const seatRowObject = {seats: []} as SeatRowInterface;
 
         for (const columnElement of rowElement.children) {
             let seatObject = {} as SeatInterface;

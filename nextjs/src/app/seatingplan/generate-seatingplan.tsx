@@ -10,8 +10,8 @@ import {
     ReadonlyURLSearchParams,
 } from 'next/navigation';
 import {SeatingPlanInterface,
-        SeatRowInterface,
-        SeatInterface
+        SeatRowInterfaceIndexed,
+        SeatInterfaceIndexed
 } from "./seatingplan-interfaces";
 
 import styles from './style.module.css';
@@ -22,20 +22,19 @@ export async function FetchSeatingPlanData(url: string): Promise<SeatingPlanInte
     return data;
 };
 
-const SeatingRow = ({row}: {row: SeatRowInterface}): JSX.Element => {
+const SeatingRow = ({row}: {row: SeatRowInterfaceIndexed}): JSX.Element => {
     let groupElements = [] as JSX.Element[];
-    let seats = [] as SeatInterface[];
     let prevSeatOccupiedState = null as boolean | null;
     let nextSeatOccupiedState: boolean | null;
 
     // Sort seats according to seat column indexes
-    seats = row.seats.sort(function(a, b) {
+    const seats = row.seats.sort((a: SeatInterfaceIndexed, b: SeatInterfaceIndexed): number => {
         return a.column_index - b.column_index;
-    })
+    }) as SeatInterfaceIndexed[];
 
     return (
         <div className={styles["seating-row"]}>
-            {seats.map((seat: SeatInterface, j: number) => {
+            {seats.map((seat: SeatInterfaceIndexed, j: number) => {
                 /* Set proceeding seat occupied state if it
                  * is not the last seat of the current row
                  */
@@ -111,16 +110,16 @@ export default function GenerateSeatingPlan(): JSX.Element | null {
             })
     }, [seatPlanId]);
 
-    const seatingPlanRows = seatingPlanObject.seat_rows as SeatRowInterface[];
+    const seatingPlanRows = seatingPlanObject.seat_rows as SeatRowInterfaceIndexed[];
 
     // seatingPlanObject.sort(function(a, b) {
-    seatingPlanRows.sort(function(a, b) {
+    seatingPlanRows.sort((a: SeatRowInterfaceIndexed, b: SeatRowInterfaceIndexed): number => {
         return a.row_index - b.row_index;
     });
 
     return (
         <>
-            {seatingPlanRows.map((row: SeatRowInterface, i: number) => (
+            {seatingPlanRows.map((row: SeatRowInterfaceIndexed, i: number) => (
                 <SeatingRow key={i} row={row} />
             ))}
         </>
