@@ -93,7 +93,7 @@ const SeatingRow = ({row}: {row: SeatRowInterfaceIndexed}): JSX.Element => {
     );
 };
 
-export default function GenerateSeatingPlan(): JSX.Element | null {
+export default function GenerateSeatingPlan(): JSX.Element {
     const searchParams = useSearchParams() as ReadonlyURLSearchParams;
     const seatPlanId = searchParams.get('id') as string;
     const DJANGO_API_SEATINGPLAN_URL = `http://localhost:8001/api/seatingplans/${seatPlanId}` as string;
@@ -108,7 +108,7 @@ export default function GenerateSeatingPlan(): JSX.Element | null {
             .catch(error => {
                 console.error('Error fetching seating plan data:', error);
             })
-    }, [seatPlanId]);
+    }, [seatPlanId, DJANGO_API_SEATINGPLAN_URL]);
 
     const seatingPlanRows = seatingPlanObject.seat_rows as SeatRowInterfaceIndexed[];
 

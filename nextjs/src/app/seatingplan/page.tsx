@@ -4,25 +4,16 @@ import {
     JSX,
     useState,
     useRef,
-    RefObject
+    RefObject,
+    Suspense
 } from "react";
 import styles from "./style.module.css";
 import "./variables.css"
 import GenerateSeatingPlan from "./generate-seatingplan"
 import {ExportSeatingPlanAsCsv} from "./seatingplan-converter";
 
-export function GenerateSeatOutlinesGrid(columns: number, rows: number): JSX.Element[] {
-    const gridArray = Array.from({ length: rows }, (_, idx) => (
-        <div className={styles["seating-row"]} key={idx}>
-            {Array.from({ length: columns }, (_, seatIdx) => (
-                <div key={seatIdx} title="Add New Seat" id="seat-outline" className={styles["seat-outline"]}></div>
-            ))}
-        </div>
-    )) as JSX.Element[]
-    return gridArray;
-}
 
-export function ToggleSeatOutlinesVisibility(seatingGridRef: RefObject<HTMLElement | null>): void {
+function ToggleSeatOutlinesVisibility(seatingGridRef: RefObject<HTMLElement | null>): void {
     const seatingGridRows = seatingGridRef.current?.children as HTMLCollectionOf<HTMLElement>;
 
     for (const seatRow of seatingGridRows as HTMLCollectionOf<HTMLElement>) {
@@ -142,7 +133,9 @@ export default function Page(): JSX.Element {
             <div className={styles["seatplan-container"]}>
                 <div className={styles["seating-grid-container"]}>
                     <div ref={seatingGridRef} className={styles["seating-grid"]}>
-                        {GenerateSeatingPlan()}
+                        <Suspense>
+                            <GenerateSeatingPlan />
+                        </Suspense>
                     </div>
                 </div>
             </div>
