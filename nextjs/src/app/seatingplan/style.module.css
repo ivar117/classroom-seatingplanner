@@ -88,6 +88,7 @@
                     transition: transform 400ms;
                     gap: 7px;
                     outline: none;
+                    color: black;
 
                     &#seat-outlines-toggle-button {
                         background-color: var(--off-white-color);
@@ -124,7 +125,6 @@
                         display: flex;
                         flex-wrap: wrap;
                         width: 143.190px;
-                        background-color: var(--off-white-color);
                         border-radius: var(--sidebar-button-border-radius);
                         border: var(--default-border-width) solid #000000;
                         flex-direction: column;
@@ -151,6 +151,8 @@
                             padding: 5px 5px 5px 10px;
                             cursor: pointer;
                             transition: background-color 200ms;
+                            background-color: var(--off-white-color);
+                            color: black;
 
                             &:hover {
                                 background-color: var(--blue-accent-color);
