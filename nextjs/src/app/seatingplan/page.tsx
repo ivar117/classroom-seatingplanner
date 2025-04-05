@@ -8,7 +8,6 @@ import {
     Suspense
 } from "react";
 import styles from "./style.module.css";
-import "./variables.css"
 import GenerateSeatingPlan from "./generate-seatingplan"
 import {ExportSeatingPlanAsCsv} from "./seatingplan-converter";
 
