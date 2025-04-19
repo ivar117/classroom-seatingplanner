@@ -38,7 +38,11 @@ def post_seating_plan(request, seating_plan: PostSeatingPlanSchema):
     return seating_plan
 
 def create_seating_plan(seating_plan: PostSeatingPlanSchema):
-    seating_plan_obj = SeatingPlan.objects.create(user_id=seating_plan.user_id)
+    seating_plan_obj = SeatingPlan.objects.create(
+        user_id=seating_plan.user_id,
+        name=seating_plan.name
+    )
+
     for row_index in range(len(seating_plan.seat_rows)):
         seat_row = seating_plan.seat_rows[row_index]
         seat_row_obj = SeatRow.objects.create(

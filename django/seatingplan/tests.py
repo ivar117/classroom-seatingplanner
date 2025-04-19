@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 import json
 
 from .api import router as seating_plan_router
-from .models import *
+from .models import Person, Seat, SeatRow, SeatingPlan
 
 class SeatingPlanApiTest(TestCase):
     """Test seating plan related Django Ninja API endpoints"""
@@ -42,7 +42,8 @@ class SeatingPlanApiTest(TestCase):
                         }
                     ]
                 }
-            ]
+            ],
+            "name": "Seating plan"
         }
 
     def test_post_seating_plan(self):
@@ -92,6 +93,7 @@ class SeatingPlanApiTest(TestCase):
             {
                 "user_id":   seating_plan_obj.user_id,
                 "seat_rows": seating_plan_rows,
+                "name":      seating_plan_obj.name,
             }
         )
 
@@ -119,7 +121,8 @@ class SeatingPlanApiTest(TestCase):
         self.assertEqual(post_response.status_code, 200)
 
         # Perform a GET request for a seating plan with a specific id
-        get_response = self.client.get("seatingplans/1")
+        get_response      = self.client.get("seatingplans/1")
+        get_response_json = get_response.json()
 
         self.assertEqual(get_response.status_code, 200)
 
@@ -128,7 +131,7 @@ class SeatingPlanApiTest(TestCase):
 
         # Go through and verify the data in each seat row in the response data,
         # while verifying created row_index and column_index values
-        for seat_row in get_response.json()["seat_rows"]:
+        for seat_row in get_response_json["seat_rows"]:
             seats = []
             seat_column_index = 1
 
@@ -159,8 +162,9 @@ class SeatingPlanApiTest(TestCase):
         self.assertDictEqual(
             self.seating_plan_data,
             {
-                "user_id":   get_response.json()["user_id"],
+                "user_id":   get_response_json["user_id"],
                 "seat_rows": seating_plan_rows,
+                "name":      get_response_json["name"],
             }
         )
 
@@ -208,7 +212,8 @@ class SeatingPlanApiTest(TestCase):
                         }
                     ]
                 }
-            ]
+            ],
+            "name": "Another seating plan"
         }
 
         # Perform another seating plan POST request

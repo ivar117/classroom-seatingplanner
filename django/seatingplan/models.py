@@ -7,7 +7,7 @@ class SeatingPlan(models.Model):
             on_delete=models.CASCADE,
             related_name='seatings' # Access seatings from related user
     )
-
+    name       = models.CharField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -15,7 +15,10 @@ class SeatingPlan(models.Model):
         verbose_name_plural = "Seating Plans" # Human-readable name
 
     def __str__(self):
-        return f'Seating plan by {self.user} on {self.created_at}'
+        if self.name:
+            return f'Seating plan {self.name} by {self.user} on {self.created_at}'
+        else:
+            return f'Seating plan by {self.user} on {self.created_at}'
 
 class Person(models.Model):
     name         = models.CharField()
