@@ -1,0 +1,67 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+    stdin_open: true
+    tty: true
+    working_dir: /src
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/src
+      - run_vol:/var/run
+      - cache_vol:/var/cache
+      - tmp_vol:/tmp
+    env_file:
+      - .env
+    environment:
+      - DJANGO_DEBUG=False
+      - GUNICORN_WORKERS=5
+    command: >
+      sh -c "sh migrations.sh && gunicorn -w 5 --reload -b 0.0.0.0:8000 --log-level info seatingplanner.wsgi"
+    depends_on:
+      - db
+
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    stdin_open: true
+    tty: true
+    working_dir: /src
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/src
+    command: >
+      sh -c "npm install -g npm@latest && npm install && npm run build && npm run start"
+    depends_on:
+      - backend
+      - db
+
+  db:
+    container_name: db
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+
+
+volumes:
+  run_vol:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  cache_vol:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  tmp_vol:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
