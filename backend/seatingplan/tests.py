@@ -1,26 +1,58 @@
 from django.test import TestCase
 from ninja_extra.testing import TestClient
-from django.contrib.auth.models import User
+from ninja_jwt.routers.obtain import obtain_pair_router
 import json
 
+from seatingplanner.api import router as user_router
 from .api import router as seating_plan_router
 from .models import Person, Seat, SeatRow, SeatingPlan
 
 class SeatingPlanApiTest(TestCase):
     """Test seating plan related Django Ninja API endpoints"""
+    # Seating plan router client
+    client_seatingplan = TestClient(seating_plan_router)
+    # User api router client
+    client_user = TestClient(user_router)
+    # Auth token pair router client
+    client_auth = TestClient(obtain_pair_router)
+
 
     def setUp(self):
-        self.client = TestClient(seating_plan_router)
+        user_password  = "password"
+        user_username  = "test"
+        user_data = {
+            "username": user_username,
+            "email": "test@example.com",
+            "password": user_password
+        }
 
-        # Create an example user to be tested on with
-        # the seating plan test data
-        self.user = User.objects.create_user(username='test',
-                                    email='test@example.com',
-                                    password='password')
+        # Perform a POST request to create a new user
+        post_user_response = self.client_user.post(
+            "user",
+            json.dumps(user_data),
+            content_type="application/json"
+        )
+
+        token_pair_data = {
+            "password": user_password,
+            "username": user_username,
+        }
+
+        # Perform a POST request to obtain auth token pair
+        # for the test user
+        post_token_response = self.client_auth.post(
+            "pair",
+            json.dumps(token_pair_data),
+            content_type="application/json"
+        )
+
+        # Verify that the POST request was successful
+        self.assertEqual(post_token_response.status_code, 200)
+        # Get auth access token
+        self.access_token = post_token_response.json()["access"]
 
         # Seating plan test data to perform POST requests with
         self.seating_plan_data = {
-            "user_id":   self.user.id,
             "seat_rows": [
                 {
                     "seats": [
@@ -50,13 +82,13 @@ class SeatingPlanApiTest(TestCase):
         ## Test seatingplans POST request endpoint ##
 
         # Perform a POST request to create a new seating plan
-        post_response = self.client.post(
+        post_response = self.client_seatingplan.post(
             "seatingplans",
             json.dumps(self.seating_plan_data),
-            content_type="application/json"
+            content_type="application/json",
+            headers={"Authorization": "Bearer " + self.access_token}
         )
 
-        # Verify that the POST request was successful
         self.assertEqual(post_response.status_code, 200)
 
         # Get the latest SeatingPlan object created from the POST request
@@ -91,7 +123,6 @@ class SeatingPlanApiTest(TestCase):
         self.assertDictEqual(
             self.seating_plan_data,
             {
-                "user_id":   seating_plan_obj.user_id,
                 "seat_rows": seating_plan_rows,
                 "name":      seating_plan_obj.name,
             }
@@ -109,19 +140,28 @@ class SeatingPlanApiTest(TestCase):
                 person_index += 1
 
     def test_get_seating_plan(self):
-        ## Test seatingplans/{seating_plan_id} GET request endpoint ##
+        ## Test seatingplans/<seating_plan_id> GET request endpoint ##
 
         # Perform a POST request to create a new seating plan
-        post_response = self.client.post(
+        post_response = self.client_seatingplan.post(
             "seatingplans",
             json.dumps(self.seating_plan_data),
-            content_type="application/json"
+            content_type="application/json",
+            headers={"Authorization": "Bearer " + self.access_token}
         )
 
         self.assertEqual(post_response.status_code, 200)
 
+        # Get the latest SeatingPlan object created from the POST request
+        seating_plan_obj = SeatingPlan.objects.last()
+        # Get the id of the SeatingPlan object
+        seating_plan_id  = seating_plan_obj.id
+
         # Perform a GET request for a seating plan with a specific id
-        get_response      = self.client.get("seatingplans/1")
+        get_response = self.client_seatingplan.get(
+            "seatingplans/" + str(seating_plan_id),
+            headers={"Authorization": "Bearer " + self.access_token}
+        )
         get_response_json = get_response.json()
 
         self.assertEqual(get_response.status_code, 200)
@@ -162,7 +202,6 @@ class SeatingPlanApiTest(TestCase):
         self.assertDictEqual(
             self.seating_plan_data,
             {
-                "user_id":   get_response_json["user_id"],
                 "seat_rows": seating_plan_rows,
                 "name":      get_response_json["name"],
             }
@@ -172,16 +211,20 @@ class SeatingPlanApiTest(TestCase):
         ## Test seatingplans GET request endpoint ##
 
         # Perform a POST request to create a new seating plan
-        post_response = self.client.post(
+        post_response = self.client_seatingplan.post(
             "seatingplans",
             json.dumps(self.seating_plan_data),
-            content_type="application/json"
+            content_type="application/json",
+            headers={"Authorization": "Bearer " + self.access_token}
         )
 
         self.assertEqual(post_response.status_code, 200)
 
         # Perform a GET request for all the created seating plans
-        get_response = self.client.get("seatingplans")
+        get_response = self.client_seatingplan.get(
+            "seatingplans",
+            headers={"Authorization": "Bearer " + self.access_token}
+        )
 
         self.assertEqual(get_response.status_code, 200)
 
@@ -190,7 +233,6 @@ class SeatingPlanApiTest(TestCase):
 
         # Create a new set of seating plan test data
         new_seating_plan_data = {
-            "user_id":   self.user.id,
             "seat_rows": [
                 {
                     "seats": [
@@ -217,15 +259,19 @@ class SeatingPlanApiTest(TestCase):
         }
 
         # Perform another seating plan POST request
-        post_response = self.client.post(
+        post_response = self.client_seatingplan.post(
             "seatingplans",
             json.dumps(new_seating_plan_data),
-            content_type="application/json"
+            content_type="application/json",
+            headers={"Authorization": "Bearer " + self.access_token}
         )
 
         self.assertEqual(post_response.status_code, 200)
 
-        get_response = self.client.get("seatingplans")
+        get_response = self.client_seatingplan.get(
+            "seatingplans",
+            headers={"Authorization": "Bearer " + self.access_token}
+        )
 
         # Verify that the length of the response data is now 2
         self.assertEqual(len(get_response.json()), 2)

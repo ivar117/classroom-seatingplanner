@@ -17,15 +17,14 @@ class GetSeatRowSchema(ModelSchema):
     seats: list[GetSeatSchema]
 
     class Meta:
-        model = SeatRow
+        model  = SeatRow
         fields = '__all__'
 
 class GetSeatingPlanSchema(ModelSchema):
     class Meta:
-        model = SeatingPlan
+        model  = SeatingPlan
         fields = ['id', 'name']
 
-    user_id:   int
     seat_rows: list[GetSeatRowSchema]
     people:    list[GetPersonSchema]
 
@@ -41,6 +40,5 @@ class PostSeatRowSchema(Schema):
     seats:     list[PostSeatSchema]
 
 class PostSeatingPlanSchema(Schema):
-    user_id:   int
     seat_rows: list[PostSeatRowSchema]
     name:      Optional[str] = None

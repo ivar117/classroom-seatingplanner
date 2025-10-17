@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 from django.core.management.commands.runserver import Command as runserver
 import os
 from dotenv import load_dotenv
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # third party
     'ninja_extra',
+    'ninja_jwt',
     'corsheaders',
     # internal
     'seatingplan.apps.SeatingplanConfig',
@@ -146,3 +148,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+NINJA_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}
