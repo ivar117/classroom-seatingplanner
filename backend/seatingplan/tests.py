@@ -77,6 +77,10 @@ class SeatingPlanApiTest(TestCase):
             ],
             "name": "Seating plan"
         }
+        # Csv data used to test csv file upload
+        # Needs to have equivalent data as self.seating_plan_data
+        # for the csv post test to pass.
+        self.csv_data = b"test_name1\ntest_name2,test_name3"
 
     def test_post_seating_plan(self):
         ## Test seatingplans POST request endpoint ##
@@ -138,6 +142,50 @@ class SeatingPlanApiTest(TestCase):
                 self.assertEqual(seat["name"],        people_query[person_index].name)
                 self.assertEqual(seat["is_occupied"], people_query[person_index].used)
                 person_index += 1
+
+    def test_post_csv_seating_plan(self):
+        # Create a csv file with sample data
+        file = SimpleUploadedFile("data.csv", self.csv_data, content_type="text/csv")
+
+        # Perform a POST request to create a new seating plan from the csv file
+        post_response = self.client_seatingplan.post(
+            "seatingplans/csv",
+            {"name": "Seating plan"},
+            FILES={"file": file},
+            content_type="multipart/form-data",
+            headers={"Authorization": "Bearer " + self.access_token}
+        )
+
+        self.assertEqual(post_response.status_code, 200)
+        # Assure that a seating plan is created with the right data
+        self.assertDictEqual(post_response.data, self.seating_plan_data)
+
+    def test_delete_seating_plan(self):
+        # Perform a POST request to create a new seating plan
+        post_response = self.client_seatingplan.post(
+            "seatingplans",
+            json.dumps(self.seating_plan_data),
+            content_type="application/json",
+            headers={"Authorization": "Bearer " + self.access_token}
+        )
+
+        self.assertEqual(post_response.status_code, 200)
+
+        # Get the latest SeatingPlan object created from the POST request
+        seating_plan_obj = SeatingPlan.objects.last()
+        seating_plan_id  = seating_plan_obj.id
+
+        # Perform a DELETE request to remove the seating plan
+        delete_response = self.client_seatingplan.delete(
+            "seatingplans/" + str(seating_plan_id),
+            content_type="application/json",
+            headers={"Authorization": "Bearer " + self.access_token}
+            # json.dumps()
+        )
+
+        self.assertEqual(delete_response.status_code, 200)
+        # Ensure that the SeatingPlan object was removed
+        self.assertIsNone(SeatingPlan.objects.last())
 
     def test_get_seating_plan(self):
         ## Test seatingplans/<seating_plan_id> GET request endpoint ##

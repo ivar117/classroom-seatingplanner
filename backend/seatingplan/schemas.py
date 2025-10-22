@@ -42,3 +42,6 @@ class PostSeatRowSchema(Schema):
 class PostSeatingPlanSchema(Schema):
     seat_rows: list[PostSeatRowSchema]
     name:      Optional[str] = None
+
+class PostCsvSeatingPlanFormData(Schema):
+    name: Optional[str] = None

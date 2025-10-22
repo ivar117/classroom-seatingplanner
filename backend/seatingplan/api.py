@@ -1,12 +1,16 @@
 from django.shortcuts import get_object_or_404
 from ninja_extra import Router
+from ninja import File, Form
 from ninja_jwt.authentication import JWTAuth
+from ninja.files import UploadedFile
 
 from .models import Person, Seat, SeatRow, SeatingPlan
 from .schemas import (
     GetSeatingPlanSchema,
-    PostSeatingPlanSchema
+    PostSeatingPlanSchema,
+    PostCsvSeatingPlanFormData
 )
+from .parse_csv import parse_seatingplan_csv
 
 router = Router()
 
@@ -42,6 +46,34 @@ def post_seatingplan(request, seating_plan: PostSeatingPlanSchema):
     create_seating_plan(seating_plan, request.user)
     return seating_plan
 
+@router.post("seatingplans/csv",
+             summary="Add a seating plan from a csv file",
+             description="Takes a csv file and a name as input \
+             and creates a new seating plan and a list of people",
+             url_name="seating_plan_add_csv",
+             auth=JWTAuth())
+def post_setingplan_csv(request, details: Form[PostCsvSeatingPlanFormData], file: File[UploadedFile]):
+    data = file.read()
+    decoded_data = data.decode("utf-8")
+
+    seating_plan_dict = parse_seatingplan_csv(decoded_data, details.name)
+    create_seating_plan(PostSeatingPlanSchema(**seating_plan_dict), request.user)
+
+    return seating_plan_dict
+
+@router.delete("seatingplans/{int:seating_plan_id}",
+               summary="Remove a seating plan",
+               description="Removes a seating plan and \
+               related objects",
+               url_name="seating_plan_remove",
+               auth=JWTAuth())
+def delete_seatingplan(request, seating_plan_id: int):
+    seating_plan = get_object_or_404(
+        SeatingPlan,
+        id=seating_plan_id,
+        user=request.user)
+    seating_plan.delete()
+    return {"id": seating_plan_id}
 
 def create_seating_plan(seating_plan: PostSeatingPlanSchema, user) -> object:
     seating_plan_obj = SeatingPlan.objects.create(user=user, name=seating_plan.name)
