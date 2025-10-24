@@ -1,3 +1,8 @@
+export interface PersonInterface {
+    name: string;
+    used: boolean;
+}
+
 export interface SeatInterfaceIndexed {
     column_index:  number;
     is_occupied:   boolean;
@@ -20,4 +25,12 @@ export interface SeatRowInterface {
 
 export interface SeatingPlanInterface {
     seat_rows: SeatRowInterface[];
+    name?:     string;
+}
+
+export interface SeatingPlanInterfaceExtended {
+    seat_rows: SeatRowInterface[];
+    name?:     string;
+    people:    PersonInterface[];
+    id?:       number;
 }

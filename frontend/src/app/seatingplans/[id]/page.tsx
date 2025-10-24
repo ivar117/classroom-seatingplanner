@@ -5,11 +5,13 @@ import {
     useState,
     useRef,
     RefObject,
-    Suspense
+    useEffect,
 } from "react";
-import styles from "./style.module.css";
-import GenerateSeatingPlan from "./generate-seatingplan"
+import styles from "@/app/css/seatingplan.module.css";
+
 import {ExportSeatingPlanAsCsv} from "./seatingplan-converter";
+import GenerateSeatingPlan from "./generate-seatingplan";
+import { useAuth } from "@/components/auth-provider";
 
 
 function ToggleSeatOutlinesVisibility(seatingGridRef: RefObject<HTMLElement | null>): void {
@@ -30,6 +32,14 @@ function ToggleSeatOutlinesVisibility(seatingGridRef: RefObject<HTMLElement | nu
 }
 
 export default function Page(): JSX.Element {
+    const auth = useAuth();
+
+    useEffect((): void => {
+        if (auth.isAuthenticated != null && !auth.isAuthenticated) {
+            auth.loginRequiredRedirect();
+        }
+    }, [auth])
+
     const [isSidebarToggled, setIsSidebarToggled] = useState<boolean>(false);
 
     const toggleSidebar = (): void => {
@@ -58,16 +68,16 @@ export default function Page(): JSX.Element {
     }
 
     return (
-        <main className={styles["layout-container"]}>
+        <div className={styles["layout-container"]}>
             <div className={styles["sidebar-container"]}>
                 <div className={`${styles.sidebar} ${isSidebarToggled ? styles.visible : ''}`}>
                     <div className={styles["sidebar-actions"]} style={{display: sidebarActionsDisplay}}>
                         <div className={styles.toolbar}>
-                            <button title="Undo" id={styles["undo-button"]} className={`${styles["toolbar-item"]} ${styles.left}`}>
+                            <button title="Undo (Ctrl+Z)" id={styles["undo-button"]} className={`${styles["toolbar-item"]} ${styles.left}`}>
                                 <img src="/images/components/undo.svg" alt="Undo" />
                             </button>
                             <div className={styles["toolbar-separator"]}></div>
-                            <button title="Redo" id={styles["redo-button"]} className={styles["toolbar-item"]}>
+                            <button title="Redo (Ctrl+Shift+Z)" id={styles["redo-button"]} className={styles["toolbar-item"]}>
                                 <img src="/images/components/redo.svg" alt="Redo" />
                             </button>
                             <div className={styles["toolbar-separator"]}></div>
@@ -115,6 +125,7 @@ export default function Page(): JSX.Element {
                                 </button>
                             </div>
                         </div>
+
                     </div> {/* .sidebar-actions ends here */}
 
                     <button
@@ -132,12 +143,10 @@ export default function Page(): JSX.Element {
             <div className={styles["seatplan-container"]}>
                 <div className={styles["seating-grid-container"]}>
                     <div ref={seatingGridRef} className={styles["seating-grid"]}>
-                        <Suspense>
-                            <GenerateSeatingPlan />
-                        </Suspense>
+                        <GenerateSeatingPlan />
                     </div>
                 </div>
             </div>
-        </main> /* .layout-container ends here */
+        </div> /* .layout-container ends here */
     );
 }

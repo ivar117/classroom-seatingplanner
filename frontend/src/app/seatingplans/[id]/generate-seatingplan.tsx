@@ -5,22 +5,16 @@ import {
     useState,
     useEffect,
 } from 'react';
-import {
-    useSearchParams,
-    ReadonlyURLSearchParams,
-} from 'next/navigation';
+import useSWR, { SWRResponse } from "swr"
+import { useParams } from "next/navigation"
 import {SeatingPlanInterface,
         SeatRowInterfaceIndexed,
         SeatInterfaceIndexed
-} from "./seatingplan-interfaces";
+} from '@/app/seatingplans/seatingplan-interfaces';
 
-import styles from './style.module.css';
-
-export async function FetchSeatingPlanData(url: string): Promise<SeatingPlanInterface> {
-    const res = await fetch(url) as Response;
-    const data = await res.json() as SeatingPlanInterface;
-    return data;
-};
+import styles from '@/app/css/seatingplan.module.css';
+import fetcher from '@/lib/fetcher';
+import { useAuth } from '@/components/auth-provider';
 
 const SeatingRow = ({row}: {row: SeatRowInterfaceIndexed}): JSX.Element => {
     let groupElements = [] as JSX.Element[];
@@ -94,32 +88,50 @@ const SeatingRow = ({row}: {row: SeatRowInterfaceIndexed}): JSX.Element => {
 };
 
 export default function GenerateSeatingPlan(): JSX.Element {
-    const searchParams = useSearchParams() as ReadonlyURLSearchParams;
-    const seatPlanId = searchParams.get('id') as string;
-    const DJANGO_API_SEATINGPLAN_URL = `http://localhost:8001/api/seatingplans/${seatPlanId}` as string;
+    const [seatingPlanObject, SetSeatingPlanObject] = useState<SeatingPlanInterface>({seat_rows: []});
 
-    const [seatingPlanObject, SetSeatingPlanObject] = useState<SeatingPlanInterface>({seat_rows: []})
+    const params = useParams<{ id: string }>();
+    const paramsIdString = params.id as string;
 
-    useEffect(() => {
-        FetchSeatingPlanData(DJANGO_API_SEATINGPLAN_URL)
-            .then((data: SeatingPlanInterface) => {
-                SetSeatingPlanObject(data);
-            })
-            .catch(error => {
-                console.error('Error fetching seating plan data:', error);
-            })
-    }, [seatPlanId, DJANGO_API_SEATINGPLAN_URL]);
+    const DJANGO_API_SEATINGPLAN_URL = "/api/seatingplans/" + paramsIdString as string;
+
+    const {data, error} = useSWR(DJANGO_API_SEATINGPLAN_URL, fetcher) as SWRResponse;
+    const auth = useAuth();
+
+    useEffect((): void => {
+        if (error?.status === 401) {
+            auth.loginRequiredRedirect();
+        }
+        else if (data && data.seat_rows) {
+            SetSeatingPlanObject(data);
+        }
+    }, [data, auth, error]);
 
     const seatingPlanRows = seatingPlanObject.seat_rows as SeatRowInterfaceIndexed[];
 
-    // seatingPlanObject.sort(function(a, b) {
     seatingPlanRows.sort((a: SeatRowInterfaceIndexed, b: SeatRowInterfaceIndexed): number => {
         return a.row_index - b.row_index;
     });
 
     return (
         <>
-            {seatingPlanRows.map((row: SeatRowInterfaceIndexed, i: number) => (
+            {seatingPlanRows.map((row: SeatRowInterfaceIndexed, i: number): JSX.Element => (
+                <SeatingRow key={i} row={row} />
+            ))}
+        </>
+    );
+}
+
+export function GenerateSeatingPlanFromObject(seatingPlanObject: SeatingPlanInterface): JSX.Element {
+    const seatingPlanRows = seatingPlanObject.seat_rows as SeatRowInterfaceIndexed[];
+
+    seatingPlanRows.sort((a: SeatRowInterfaceIndexed, b: SeatRowInterfaceIndexed): number => {
+        return a.row_index - b.row_index;
+    });
+
+    return (
+        <>
+            {seatingPlanRows.map((row: SeatRowInterfaceIndexed, i: number): JSX.Element => (
                 <SeatingRow key={i} row={row} />
             ))}
         </>

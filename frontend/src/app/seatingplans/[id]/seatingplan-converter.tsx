@@ -9,7 +9,7 @@ import {RefObject} from "react";
 import {SeatingPlanInterface,
         SeatRowInterface,
         SeatInterface
-} from "./seatingplan-interfaces";
+} from '@/app/seatingplans/seatingplan-interfaces';
 
 export default function GenerateObjectFromSeatingPlan(seatingGridRef: RefObject<HTMLElement | null>): object {
     const seatingPlanObject = {seat_rows: []} as SeatingPlanInterface;
@@ -67,17 +67,21 @@ export function GenerateCsvFromSeatingPlan(seatingGridRef: RefObject<HTMLElement
         const seats = seatRow.seats as SeatInterface[];
 
         seats.forEach((seatColumn: SeatInterface) => {
+            const currentIndex = seats.indexOf(seatColumn);
+
             if (!seatColumn.is_occupied) {
-                csvString += " " + DELIM;
+                csvString += " ";
             }
             else {
                 if (seatColumn.name != null) {
-                    csvString += seatColumn.name + DELIM;
+                    csvString += seatColumn.name;
                 }
                 else {
-                    csvString += csvEmptySeatString + DELIM;
+                    csvString += csvEmptySeatString;
                 }
             }
+            if (currentIndex != seats.length - 1)
+                csvString += DELIM
         });
         csvString += "\n";
     });
@@ -85,12 +89,33 @@ export function GenerateCsvFromSeatingPlan(seatingGridRef: RefObject<HTMLElement
     return csvString;
 }
 
+
+export function GeneratePdfFromSeatingPlan(): void {
+}
+
+export function GenerateImageFromSeatingPlan(): void {
+}
+
+export function ExportSeatingPlanAsJson(seatingGridRef: RefObject<HTMLElement | null>) {
+    const seatingPlanObject = GenerateObjectFromSeatingPlan(seatingGridRef) as object;
+
+    const filename = "seating-plan.json" as string;
+    const contentType = "application/json;charset=utf-8;" as string;
+    const link = document.createElement('a') as HTMLAnchorElement;
+
+    link.download = filename;
+    link.href = 'data:' + contentType + ',' + encodeURIComponent(JSON.stringify(seatingPlanObject, null, 4));
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 export function ExportSeatingPlanAsCsv(seatingGridRef: RefObject<HTMLElement | null>) {
     const seatingPlanCsvString = GenerateCsvFromSeatingPlan(seatingGridRef);
 
-    const filename = "seating-plan.csv" as string;
+    const filename    = "seating-plan.csv" as string;
     const contentType = 'text/csv;charset=utf-8,' as string;
-    const link = document.createElement('a') as HTMLAnchorElement;
+    const link        = document.createElement('a') as HTMLAnchorElement;
 
     link.download = filename;
     link.href = 'data:' + contentType + encodeURIComponent(seatingPlanCsvString);
