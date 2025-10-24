@@ -1,6 +1,8 @@
 from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
 from ninja_extra.testing import TestClient
 from ninja_jwt.routers.obtain import obtain_pair_router
+
 import json
 
 from seatingplanner.api import router as user_router

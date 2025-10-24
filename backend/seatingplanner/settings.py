@@ -35,7 +35,7 @@ DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","127.0.0.1,localhost").split(",")
 
-runserver.default_port = "8001"
+runserver.default_port = "8000"
 
 # Application definition
 
@@ -103,7 +103,7 @@ DATABASES = {
          'NAME': os.getenv('DATABASE_NAME'),
          'USER': os.getenv('DATABASE_USERNAME'),
          'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-         'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
+         'HOST': os.getenv('DATABASE_HOST', 'db'),
          'PORT': os.getenv('DATABASE_PORT', 5432),
      }
  }
@@ -143,6 +143,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
